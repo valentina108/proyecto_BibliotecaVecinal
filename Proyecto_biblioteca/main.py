@@ -1,4 +1,5 @@
 import funciones as fn
+
 libro = {}
 socios = {}
 
@@ -14,9 +15,12 @@ while True:
         print("7. Registrar socio.")
         print("8. eliminar socio")
         print("9. salir del programa")
-
-
-        opc = int(input("Ingrese a la opción que desea ingresar 1-8: "))
+        
+        try:
+            opc = int(input("Ingrese a la opción que desea ingresar 1-8: "))
+        except ValueError:
+            print("Debe ingresar una opción válida.")
+            continue
 
         if opc == 1:
             fn.agregar_libro(libro) 
@@ -37,3 +41,5 @@ while True:
         elif opc == 9:
             print("Saliendo del programa...")
             break
+        else:
+            print("Opción inválida. Ingrese una opción del 1 al 9.")

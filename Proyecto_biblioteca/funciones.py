@@ -1,24 +1,25 @@
-libro = {}
-socios = {}
-
-
 #1 agregar libro
 def agregar_libro(libro):
     id_libro = input("Ingrese ID del libro: ")
     titulo_libro = input("Ingrese el titulo del libro: ")
     autor = input("Ingrese autor del libro: ")
     genero = input("Ingrese el genero del libro: ")
-    stock = input("ingrese cuantos libros va a registrar: ")
 
+    try:
+        stock = int(input("ingrese cuantos libros va a registrar: "))
+    except ValueError:
+        print("Debe ingresar un número entero.")
+        return
+    
     libro[id_libro] = {
     "titulo": titulo_libro,
     "autor": autor,
     "genero": genero,
-    "stock": stock
+    "stock": stock,
+    "prestados": 0
 }
     
     print("Libro registrado correctamente.")
-    print(libro)
 
 #2 actualizar libro
 
@@ -40,7 +41,8 @@ def actualizar_libro(libro):
                         opc_act=int(input("Ingrese una opción (1-5): "))
                     except ValueError:
                             print("Ingrese una opción válida.")
-
+                            continue
+                    
                     if opc_act == 1:
                         nuevo_titulo = input("Ingrese el nuevo título para el libro: ")
                         libro_encontrado["titulo"] = nuevo_titulo
@@ -57,23 +59,20 @@ def actualizar_libro(libro):
                         print("Género actualizado correctamente")
 
                     elif opc_act==4:
-                        nuevo_stock = int(input("Ingrese el nuevo stock: "))
-                        libro_encontrado["stock"] = (nuevo_stock)
-                        print("Stock actualizado correctamente")
-                            
+                        try:
+                            nuevo_stock = int(input("Ingrese el nuevo stock: "))
+                            libro_encontrado["stock"] = (nuevo_stock)
+                            print("Stock actualizado correctamente")
+                        except ValueError:
+                            print("Debe ingresar un número entero.")
+
                     elif opc_act==5:
                         print("Volviendo al menú principal...")
                         break
                     else:
                         print("Debe ingresar una opción válida.")
-
         else:
-            libro_encontrado
             print("Error: No se encontró un libro con ese ID.")
-
-           
-              
-
 
 #3 eliminar libro
 def eliminar_libro(libro):
@@ -89,16 +88,17 @@ def eliminar_libro(libro):
 #4 listar libros
 def listar_libro(libro):
     print("\n--- LIBROS ---")
+    if not libro:
+        print("No hay libros registrados.")
+        return
+    
     for id_libro, datos in libro.items():
         print(f"ID: {id_libro}")
         print(f"Título: {datos['titulo']}")
         print(f"Autor: {datos['autor']}")
+        print(f"Género: {datos['genero']}")
         print(f"Stock: {datos['stock']}")
-
-
-
-
-
+        print(f"Prestados: {datos['prestados']}")
 
 #5 registrar prestamo
 def registrar_prestamo(libro, socios):
@@ -110,12 +110,12 @@ def registrar_prestamo(libro, socios):
     if not libro:
         print("No hay libros registrados.")
         return
+    
     run_socio = input("Ingrese run del socio: ")
     
     if run_socio not in socios:
         print("No existe un socio con ese run.")
-        return
-        
+        return  
     
     id_libro = input("Ingrese ID del libro que desea prestar: ")
     
@@ -126,12 +126,15 @@ def registrar_prestamo(libro, socios):
     if libro[id_libro]["stock"] <= 0:
         print("Error: No hay ejemplares disponibles de este libro.")
         return
-    
 
     libro[id_libro]["stock"] -= 1
     libro[id_libro]["prestados"] += 1
-    socios[run_socio]["prestamos_activos"].append(id_libro)
     
+    if "prestamos_activos" not in socios[run_socio]:
+        socios[run_socio]["prestamos_activos"] = []
+    
+    socios[run_socio]["prestamos_activos"].append(id_libro)
+
     print(f"\nPréstamo registrado correctamente:")
     print(f"Libro: {libro[id_libro]['titulo']} (ID: {id_libro})")
     print(f"Autor: {libro[id_libro]['autor']}")
@@ -150,6 +153,9 @@ def registrar_devolucion(libro, socios):
         print("No existe socio")
         return
     
+    if "prestamos_activos" not in socios[run]:
+        socios[run]["prestamos_activos"] = []
+    
     prestamos = socios[run]["prestamos_activos"]
     if not prestamos:
         print("Sin préstamos")
@@ -159,16 +165,22 @@ def registrar_devolucion(libro, socios):
     for i, id_libro in enumerate(prestamos, 1):
         print(f"{i}. {libro[id_libro]['titulo']}")
     
-    num = int(input("Número: ")) - 1
+    try:
+        num = int(input("Número: ")) - 1
+        if num < 0 or num >= len(prestamos):
+            print("Número inválido.")
+            return
+    except ValueError:
+        print("Debe ingresar un número válido.")
+        return
+    
     id_libro = prestamos[num]
     
     libro[id_libro]["stock"] += 1
+    libro[id_libro]["prestados"] -= 1
     prestamos.pop(num)
     
     print("Devolución hecha")
-
-
-
 
 #7 registrar socio
 def registrar_socio(socios):
@@ -183,11 +195,10 @@ def registrar_socio(socios):
 
     socios[run_socio] = {
         "nombre": nombre,
+        "prestamos_activos": []
     }
     
     print("Socio registrado correctamente.")
-    print(socios)
-
 
 #8 eliminar socio
 def eliminar_socio(socios):
@@ -195,10 +206,12 @@ def eliminar_socio(socios):
     run_socio = input("Ingrese RUN del socio que desea eliminar: ")
 
     if run_socio in socios:
+        if "prestamos_activos" in socios[run_socio] and socios[run_socio]["prestamos_activos"]:
+            print("No se puede eliminar el socio porque tiene préstamos activos.")
+            return
+        
         del socios[run_socio]
+        
         print("Socio eliminado correctamente.")
     else:
         print("Error: No se encontró un socio con ese RUN.")
-
-
-
